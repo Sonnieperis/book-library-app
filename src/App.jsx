@@ -1,5 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+<Route path="/book/:id" element={<BookDetails />} />
+
 
 // Pages
 import Home from "./pages/Home";
