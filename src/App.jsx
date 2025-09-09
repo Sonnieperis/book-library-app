@@ -1,10 +1,8 @@
+// src/App.jsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
-
-
-// Pages
 import Home from "./pages/Home";
+import BookDetails from "./pages/BookDetails";
 import NotFound from "./pages/NotFound";
 
 export default function App() {
@@ -12,10 +10,8 @@ export default function App() {
     <div className="min-h-screen bg-orange-900 text-white">
       <Router>
         <Routes>
-          {/* Home Page */}
           <Route path="/" element={<Home />} />
-
-          {/* Catch-all route */}
+          <Route path="/books/:id" element={<BookDetails />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Router>
