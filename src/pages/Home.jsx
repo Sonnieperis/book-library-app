@@ -1,55 +1,45 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 export default function Home() {
   const [books, setBooks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("harry potter");
 
   useEffect(() => {
-    // Example query: "harry potter"
-    fetch("https://openlibrary.org/search.json?q=harry+potter")
+    fetch(`https://openlibrary.org/search.json?q=${query}`)
       .then((res) => res.json())
       .then((data) => {
-        setBooks(data.docs.slice(0, 10)); // Take first 10 results
-        setLoading(false);
+        setBooks(data.docs.slice(0, 10)); // limit to 10 results
       })
-      .catch((err) => {
-        console.error("Error fetching books:", err);
-        setLoading(false);
-      });
-  }, []);
-
-  if (loading) {
-    return <div className="p-6">Loading books...</div>;
-  }
+      .catch((err) => console.error(err));
+  }, [query]);
 
   return (
-    <div className="p-6">
-      <h1 className="text-3xl font-bold mb-6">📚 Welcome to the Library</h1>
-      <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-        {books.map((book, index) => (
-          <div
-            key={index}
-            className="bg-white text-black p-4 rounded-lg shadow-md"
+    <div>
+      <h1 className="text-3xl font-bold mb-4">📚 Welcome to Book Library</h1>
+
+      {/* Search Bar */}
+      <div className="mb-6">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search books..."
+          className="p-2 rounded text-black"
+        />
+      </div>
+
+      {/* Book List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {books.map((book) => (
+          <Link
+            key={book.key}
+            to={`/book/${book.key.replace("/works/", "")}`}
+            className="block bg-orange-800 p-4 rounded shadow hover:bg-orange-700"
           >
-            {book.cover_i ? (
-              <img
-                src={`https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`}
-                alt={book.title}
-                className="mb-3 rounded"
-              />
-            ) : (
-              <div className="mb-3 h-40 flex items-center justify-center bg-gray-200 text-gray-600">
-                No Cover
-              </div>
-            )}
             <h2 className="font-semibold">{book.title}</h2>
-            <p className="text-sm text-gray-700">
-              {book.author_name ? book.author_name.join(", ") : "Unknown Author"}
-            </p>
-            <p className="text-xs text-gray-500">
-              {book.publisher ? book.publisher[0] : "No Publisher"}
-            </p>
-          </div>
+            <p className="text-sm">by {book.author_name?.join(", ")}</p>
+          </Link>
         ))}
       </div>
     </div>
