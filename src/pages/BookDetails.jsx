@@ -1,90 +1,83 @@
-import { useEffect, useState } from "react";
+// src/pages/BookDetails.jsx
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import Spinner from "../components/Spinner";
-import ErrorMessage from "../components/ErrorMessage";
-import { getWorkDetails, COVER_URL } from "../services/openLibrary";
 
 export default function BookDetails() {
-  const { id } = useParams(); // workId
-  const [data, setData] = useState(null);
-  const [status, setStatus] = useState("loading");
-  const [error, setError] = useState("");
+  const { id } = useParams(); // dynamic ID from route
+  const [book, setBook] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    let ignore = false;
-    async function load() {
-      setStatus("loading");
-      setError("");
+    async function fetchBookDetails() {
       try {
-        const details = await getWorkDetails(id);
-        if (!ignore) {
-          setData(details);
-          setStatus("success");
-        }
-      } catch (e) {
-        if (!ignore) {
-          setError("Could not load book details.");
-          setStatus("error");
-        }
+        setLoading(true);
+        const response = await fetch(`https://openlibrary.org/works/${id}.json`);
+        if (!response.ok) throw new Error("Failed to fetch book details");
+        const data = await response.json();
+        setBook(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     }
-    load();
-    return () => { ignore = true; };
+    fetchBookDetails();
   }, [id]);
 
-  if (status === "loading") return <Spinner />;
-  if (status === "error") return <div className="mx-auto max-w-3xl px-4 py-6"><ErrorMessage message={error} /></div>;
-  if (!data) return null;
-
-  const cover = COVER_URL(data.coverId, "L") || "https://via.placeholder.com/256x384?text=No+Cover";
+  if (loading) return <p className="text-center mt-8">Loading book details...</p>;
+  if (error) return <p className="text-red-500 text-center mt-8">{error}</p>;
+  if (!book) return <p className="text-center mt-8">No details available.</p>;
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-6">
-      <Link to="/" className="text-blue-600 hover:underline">← Back to results</Link>
+    <div className="min-h-screen bg-orange-900 text-white p-6">
+      {/* Back Button */}
+      <Link
+        to="/"
+        className="inline-block mb-6 bg-orange-700 hover:bg-orange-600 text-white px-4 py-2 rounded-lg shadow"
+      >
+        ← Back
+      </Link>
 
-      <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-[200px_1fr]">
-        <img src={cover} alt={data.title} className="h-[300px] w-[200px] rounded object-cover ring-1 ring-gray-200" />
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Book Cover */}
+        {book.covers && (
+          <img
+            src={`https://covers.openlibrary.org/b/id/${book.covers[0]}-L.jpg`}
+            alt={book.title}
+            className="w-64 h-auto rounded-lg shadow-lg"
+          />
+        )}
 
+        {/* Book Info */}
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{data.title}</h1>
-
-          {data.publicationDate ? (
-            <p className="mt-2 text-gray-700">Publication Date: {data.publicationDate}</p>
-          ) : (
-            <p className="mt-2 text-gray-400">Publication Date: N/A</p>
+          <h1 className="text-3xl font-bold mb-4">{book.title}</h1>
+          {book.description && (
+            <p className="mb-4 text-lg">
+              {typeof book.description === "string"
+                ? book.description
+                : book.description.value}
+            </p>
           )}
 
-          {data.isbn ? (
-            <p className="text-gray-700">ISBN: {data.isbn}</p>
-          ) : (
-            <p className="text-gray-400">ISBN: N/A</p>
-          )}
-
-          {data.numberOfPages ? (
-            <p className="text-gray-700">Pages: {data.numberOfPages}</p>
-          ) : (
-            <p className="text-gray-400">Pages: N/A</p>
-          )}
-
-          {data.subjects?.length ? (
-            <div className="mt-3 flex flex-wrap gap-2">
-              {data.subjects.slice(0, 12).map((s) => (
-                <span key={s} className="rounded-full bg-blue-50 px-3 py-1 text-sm text-blue-700 ring-1 ring-blue-200">
-                  {s}
-                </span>
-              ))}
-            </div>
-          ) : (
-            <p className="mt-3 text-gray-400">No subjects available.</p>
-          )}
+          <ul className="space-y-2">
+            {book.first_publish_date && (
+              <li>
+                <strong>First Published:</strong> {book.first_publish_date}
+              </li>
+            )}
+            {book.subjects && (
+              <li>
+                <strong>Subjects:</strong> {book.subjects.slice(0, 5).join(", ")}
+              </li>
+            )}
+            {book.pagination && (
+              <li>
+                <strong>Pages:</strong> {book.pagination}
+              </li>
+            )}
+          </ul>
         </div>
-      </div>
-
-      <div className="mt-6">
-        <h2 className="mb-2 text-xl font-semibold">Description</h2>
-        <p className="whitespace-pre-wrap text-gray-800">
-          {data.description || "No description available for this work."}
-        </p>
       </div>
     </div>
   );
