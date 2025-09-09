@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 body {
-  @apply bg-amber-100; /* Tailwind light brown */
-  min-height: 100vh;
+  @apply bg-orange-900 text-white;
 }
