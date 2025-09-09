@@ -1,18 +1,20 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Signup from "./pages/Signup";
-import Login from "./pages/Login";
-import Verification from "./pages/Verification";
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-function App() {
+// Pages
+import Home from "./pages/Home";
+import NotFound from "./pages/NotFound";
+
+export default function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/" element={<Signup />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/verify" element={<Verification />} />
+        {/* Home Page */}
+        <Route path="/" element={<Home />} />
+
+        {/* Catch-all route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
-
-export default App;
